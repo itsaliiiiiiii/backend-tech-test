@@ -1,0 +1,20 @@
+package com.example.recipes.dto.category;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class CategoryResponseDto {
+    private String id;
+    private String name;
+    private String image;
+    
+    @JsonProperty("class")
+    private String styleClass;
+}
