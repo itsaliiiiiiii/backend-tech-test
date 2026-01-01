@@ -30,7 +30,7 @@ public class Recipe {
     private Integer cookTime;
     private Integer servings;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.MERGE)
     @JoinColumn(name = "category_id")
     private Category category;
 
