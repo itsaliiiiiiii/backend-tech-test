@@ -15,6 +15,5 @@ public class CategoryResponseDto {
     private String name;
     private String image;
     
-    @JsonProperty("class")
     private String styleClass;
 }

@@ -32,15 +32,19 @@ public class SecurityConfiguration {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/recipes/**").permitAll() // Allow read for now, or maybe GET only? User requirement: "Protect API endpoints so only authenticated users can access them." But dashboard usually shows recipes to everyone?
-                        // Let's protect everything except auth and GET recipes/categories if public. 
-                        // User said: "Protect API endpoints so only authenticated users can access them."
-                        // But also "Reduce loading time... on dashboard". Usually dashboard is public.
-                        // However, "Add user authentication... Protect API endpoints so only authenticated users can access them."
-                        // I will allow GET for everyone, but POST/PUT/DELETE for authenticated users.
-                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/recipes/**", "/api/categories/**").permitAll()
-                        .anyRequest().authenticated()
-                )
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/recipes/**",
+                                "/api/categories/**")
+                        .permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/recipes/**",
+                                "/api/categories/**")
+                        .hasAuthority("ADMIN")
+                        .requestMatchers(org.springframework.http.HttpMethod.PUT, "/api/recipes/**",
+                                "/api/categories/**")
+                        .hasAuthority("ADMIN")
+                        .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/api/recipes/**",
+                                "/api/categories/**")
+                        .hasAuthority("ADMIN")
+                        .anyRequest().authenticated())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
