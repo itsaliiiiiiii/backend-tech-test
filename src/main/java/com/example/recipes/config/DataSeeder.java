@@ -5,12 +5,16 @@ import com.example.recipes.entity.DirectionStep;
 import com.example.recipes.entity.Ingredient;
 import com.example.recipes.entity.Nutrition;
 import com.example.recipes.entity.Recipe;
+import com.example.recipes.entity.Role;
+import com.example.recipes.entity.User;
 import com.example.recipes.repository.CategoryRepository;
 import com.example.recipes.repository.RecipeRepository;
+import com.example.recipes.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -29,9 +33,17 @@ public class DataSeeder {
         @Bean
         public CommandLineRunner seedData(CategoryRepository categoryRepository,
                         RecipeRepository recipeRepository,
+                        UserRepository userRepository,
+                        PasswordEncoder passwordEncoder,
                         PlatformTransactionManager transactionManager) {
                 return args -> {
                         TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
+
+                        // Phase 0: Seed Users
+                        transactionTemplate.execute(status -> {
+                                seedUsers(userRepository, passwordEncoder);
+                                return null;
+                        });
 
                         // Phase 1: Seed Categories
                         transactionTemplate.execute(status -> {
@@ -46,6 +58,26 @@ public class DataSeeder {
                                 return null;
                         });
                 };
+        }
+
+        private void seedUsers(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+                if (userRepository.findByUsername("admin").isEmpty()) {
+                        User admin = User.builder()
+                                        .username("admin")
+                                        .password(passwordEncoder.encode("adminpassword"))
+                                        .role(Role.ADMIN)
+                                        .build();
+                        userRepository.save(admin);
+                }
+
+                if (userRepository.findByUsername("user").isEmpty()) {
+                        User user = User.builder()
+                                        .username("user")
+                                        .password(passwordEncoder.encode("userpassword"))
+                                        .role(Role.USER)
+                                        .build();
+                        userRepository.save(user);
+                }
         }
 
         private void seedCategories(CategoryRepository categoryRepository) {

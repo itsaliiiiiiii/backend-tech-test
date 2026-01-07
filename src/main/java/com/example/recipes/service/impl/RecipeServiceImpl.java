@@ -10,6 +10,8 @@ import com.example.recipes.repository.CategoryRepository;
 import com.example.recipes.repository.RecipeRepository;
 import com.example.recipes.service.RecipeService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,6 +37,23 @@ public class RecipeServiceImpl implements RecipeService {
 
     @Override
     @Transactional(readOnly = true)
+    public Page<RecipeResponseDto> getAllRecipes(Pageable pageable) {
+        return recipeRepository.findAll(pageable)
+                .map(recipeMapper::toDto);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<RecipeResponseDto> getAllRecipes(String category, Pageable pageable) {
+        if (category == null || category.isEmpty()) {
+            return getAllRecipes(pageable);
+        }
+        return recipeRepository.findByCategoryName(category, pageable)
+                .map(recipeMapper::toDto);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public RecipeResponseDto getRecipeById(Long id) {
         Recipe recipe = recipeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Recipe not found with id: " + id));
@@ -45,7 +64,7 @@ public class RecipeServiceImpl implements RecipeService {
     @Transactional
     public RecipeResponseDto createRecipe(RecipeRequestDto recipeRequestDto) {
         Recipe recipe = recipeMapper.toEntity(recipeRequestDto);
-        
+
         // Handle Category
         Category category = categoryRepository.findByName(recipeRequestDto.getCategory())
                 .orElseGet(() -> categoryRepository.save(Category.builder()
@@ -54,10 +73,10 @@ public class RecipeServiceImpl implements RecipeService {
                         .styleClass("card-default")
                         .build()));
         recipe.setCategory(category);
-        
+
         // Set Date
         recipe.setDate(LocalDateTime.now());
-        
+
         Recipe savedRecipe = recipeRepository.save(recipe);
         return recipeMapper.toDto(savedRecipe);
     }
@@ -67,9 +86,9 @@ public class RecipeServiceImpl implements RecipeService {
     public RecipeResponseDto updateRecipe(Long id, RecipeRequestDto recipeRequestDto) {
         Recipe existingRecipe = recipeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Recipe not found with id: " + id));
-        
+
         recipeMapper.updateEntityFromDto(recipeRequestDto, existingRecipe);
-        
+
         // Handle Category
         Category category = categoryRepository.findByName(recipeRequestDto.getCategory())
                 .orElseGet(() -> categoryRepository.save(Category.builder()
@@ -78,14 +97,17 @@ public class RecipeServiceImpl implements RecipeService {
                         .styleClass("card-default")
                         .build()));
         existingRecipe.setCategory(category);
-        
+
         // Ensure child collections are properly managed if MapStruct replaces them
-        // MapStruct with @MappingTarget typically clears and addsAll if collection exists.
-        // We might need to ensure bidirectional relationships if we had them, but we used Unidirectional with JoinTable.
+        // MapStruct with @MappingTarget typically clears and addsAll if collection
+        // exists.
+        // We might need to ensure bidirectional relationships if we had them, but we
+        // used Unidirectional with JoinTable.
         // However, we might want to ensure orphanRemoval works.
-        // The implementation of updateEntityFromDto should be checked. 
-        // With Unidirectional OneToMany and CascadeType.ALL + orphanRemoval, simply replacing the list or clearing and adding should work.
-        
+        // The implementation of updateEntityFromDto should be checked.
+        // With Unidirectional OneToMany and CascadeType.ALL + orphanRemoval, simply
+        // replacing the list or clearing and adding should work.
+
         Recipe savedRecipe = recipeRepository.save(existingRecipe);
         return recipeMapper.toDto(savedRecipe);
     }
