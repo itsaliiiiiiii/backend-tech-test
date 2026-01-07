@@ -133,7 +133,7 @@ public class DataSeeder {
 
                 // 2. Avocado Toast (Breakfast)
                 recipes.add(createRecipe("Avocado Toast",
-                                "https://images.unsplash.com/photo-1588137372308-15f75323ca8d?q=80&w=800&auto=format&fit=crop",
+                                "https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?q=80&w=800&auto=format&fit=crop",
                                 10, 5, 1, breakfast, "Alice Waters",
                                 "Creamy smashed avocado on toasted sourdough topped with poached eggs, chili flakes, and microgreens.",
                                 4.7, 320, 18, 12, 28, 185));
